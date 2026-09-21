@@ -2,15 +2,349 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <title>TeamBoard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TeamBoard | Kanban</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #17212b;
+        --muted: #65717d;
+        --line: #d9e0e6;
+        --canvas: #f3f6f8;
+        --surface: #ffffff;
+        --accent: #176b87;
+        --accent-soft: #dceff4;
+        --done: #2f7d5a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background: var(--canvas);
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+      }
+
+      .page {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 48px 0 64px;
+      }
+
+      .header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 32px;
+      }
+
+      .eyebrow,
+      .ticket__meta,
+      .status-select {
+        font-family: "Trebuchet MS", sans-serif;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        margin-bottom: 8px;
+        font-size: clamp(2.25rem, 6vw, 4.5rem);
+        line-height: 0.95;
+        letter-spacing: -0.03em;
+      }
+
+      .intro {
+        max-width: 560px;
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 1.05rem;
+        line-height: 1.5;
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .column {
+        min-width: 0;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.58);
+      }
+
+      .column__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .column h2 {
+        margin-bottom: 0;
+        font-size: 1.1rem;
+      }
+
+      .column__count {
+        display: grid;
+        min-width: 28px;
+        height: 28px;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-family: "Trebuchet MS", sans-serif;
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+
+      .ticket-list {
+        display: grid;
+        align-content: start;
+        gap: 12px;
+        min-height: 160px;
+      }
+
+      .ticket {
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--surface);
+        box-shadow: 0 4px 12px rgba(23, 33, 43, 0.05);
+      }
+
+      .ticket h3 {
+        margin: 0 0 8px;
+        font-size: 1.05rem;
+        line-height: 1.2;
+      }
+
+      .ticket__description {
+        margin-bottom: 16px;
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.45;
+      }
+
+      .ticket__meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.75rem;
+      }
+
+      .status-select {
+        width: 100%;
+        margin-top: 12px;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: #fbfcfd;
+        color: var(--ink);
+        font-size: 0.8rem;
+      }
+
+      .empty-state {
+        display: grid;
+        min-height: 160px;
+        place-items: center;
+        padding: 20px;
+        border: 1px dashed var(--line);
+        border-radius: 6px;
+        color: var(--muted);
+        font-size: 0.9rem;
+        text-align: center;
+      }
+
+      .status-done .column__count {
+        background: #e0f1e7;
+        color: var(--done);
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      @media (max-width: 800px) {
+        .header {
+          display: block;
+        }
+
+        .intro {
+          margin-top: 16px;
+        }
+
+        .board {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
   <body>
-    <h1>TeamBoard</h1>
-    <p>Kanban-Ticket-System - wird im Kursverlauf aufgebaut.</p>
-    <div id="board">
-      <h2>To Do</h2>
-      <h2>In Progress</h2>
-      <h2>Done</h2>
+    <main class="page">
+      <header class="header">
+        <div>
+          <p class="eyebrow">Teamboard / Sprint 01</p>
+          <h1>Arbeitsfluss sichtbar machen.</h1>
+        </div>
+        <p class="intro">
+          Ein gemeinsames Kanban-Board fuer Geschaeftstickets. Statuswechsel
+          werden direkt in der Ansicht sichtbar.
+        </p>
+      </header>
+
+      <section class="board" id="board" aria-label="Kanban-Board">
+        <section class="column" data-status="TODO" aria-labelledby="todo-title">
+          <div class="column__header">
+            <h2 id="todo-title">To Do</h2>
+            <span class="column__count" aria-label="Anzahl Tickets">0</span>
+          </div>
+          <div class="ticket-list"></div>
+        </section>
+
+        <section class="column" data-status="IN_PROGRESS" aria-labelledby="progress-title">
+          <div class="column__header">
+            <h2 id="progress-title">In Progress</h2>
+            <span class="column__count" aria-label="Anzahl Tickets">0</span>
+          </div>
+          <div class="ticket-list"></div>
+        </section>
+
+        <section class="column status-done" data-status="DONE" aria-labelledby="done-title">
+          <div class="column__header">
+            <h2 id="done-title">Done</h2>
+            <span class="column__count" aria-label="Anzahl Tickets">0</span>
+          </div>
+          <div class="ticket-list"></div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const tickets = [
+        {
+          id: 1,
+          title: "Zugriff fuer neues Teammitglied vorbereiten",
+          description: "Die benoetigten Rollen und Berechtigungen abstimmen.",
+          assignee: "Mara",
+          status: "TODO"
+        },
+        {
+          id: 2,
+          title: "Monatsbericht pruefen",
+          description: "Offene Zahlen vor dem Versand mit Finance abgleichen.",
+          assignee: "Jonas",
+          status: "IN_PROGRESS"
+        },
+        {
+          id: 3,
+          title: "Onboarding-Checkliste aktualisieren",
+          description: "Die neue Reihenfolge fuer den ersten Arbeitstag dokumentieren.",
+          assignee: "Lea",
+          status: "DONE"
+        }
+      ];
+
+      const statusLabels = {
+        TODO: "To Do",
+        IN_PROGRESS: "In Progress",
+        DONE: "Done"
+      };
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function createTicketElement(ticket) {
+  const article = document.createElement("article");
+  article.className = "ticket";
+  article.innerHTML = `
+    <h3>${escapeHtml(ticket.title)}</h3>
+    <p class="ticket__description">${escapeHtml(ticket.description)}</p>
+    <div class="ticket__meta">
+      <span>Verantwortlich</span>
+      <strong>${escapeHtml(ticket.assignee)}</strong>
     </div>
-</body>
+    <label>
+      <span class="sr-only">Status von ${escapeHtml(ticket.title)}</span>
+      <select class="status-select" data-ticket-id="${ticket.id}">
+        ${Object.entries(statusLabels)
+          .map(([value, label]) => `<option value="${escapeHtml(value)}"${value === ticket.status ? " selected" : ""}>${escapeHtml(label)}</option>`)
+          .join("")}
+      </select>
+    </label>
+  `;
+  return article;
+}
+
+      function renderBoard() {
+        document.querySelectorAll(".column").forEach((column) => {
+          const status = column.dataset.status;
+          const ticketList = column.querySelector(".ticket-list");
+          const matchingTickets = tickets.filter((ticket) => ticket.status === status);
+
+          ticketList.replaceChildren();
+          column.querySelector(".column__count").textContent = matchingTickets.length;
+
+          if (matchingTickets.length === 0) {
+            const emptyState = document.createElement("p");
+            emptyState.className = "empty-state";
+            emptyState.textContent = "Keine Tickets in diesem Status.";
+            ticketList.append(emptyState);
+            return;
+          }
+
+          matchingTickets.forEach((ticket) => ticketList.append(createTicketElement(ticket)));
+        });
+      }
+
+      document.getElementById("board").addEventListener("change", (event) => {
+        if (!event.target.matches(".status-select")) {
+          return;
+        }
+
+        const ticket = tickets.find((item) => item.id === Number(event.target.dataset.ticketId));
+        ticket.status = event.target.value;
+        renderBoard();
+      });
+
+      renderBoard();
+    </script>
+  </body>
 </html>
