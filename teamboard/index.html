@@ -282,27 +282,36 @@
         DONE: "Done"
       };
 
-      function createTicketElement(ticket) {
-        const article = document.createElement("article");
-        article.className = "ticket";
-        article.innerHTML = `
-          <h3>${ticket.title}</h3>
-          <p class="ticket__description">${ticket.description}</p>
-          <div class="ticket__meta">
-            <span>Verantwortlich</span>
-            <strong>${ticket.assignee}</strong>
-          </div>
-          <label>
-            <span class="sr-only">Status von ${ticket.title}</span>
-            <select class="status-select" data-ticket-id="${ticket.id}">
-              ${Object.entries(statusLabels)
-                .map(([value, label]) => `<option value="${value}"${value === ticket.status ? " selected" : ""}>${label}</option>`)
-                .join("")}
-            </select>
-          </label>
-        `;
-        return article;
-      }
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function createTicketElement(ticket) {
+  const article = document.createElement("article");
+  article.className = "ticket";
+  article.innerHTML = `
+    <h3>${escapeHtml(ticket.title)}</h3>
+    <p class="ticket__description">${escapeHtml(ticket.description)}</p>
+    <div class="ticket__meta">
+      <span>Verantwortlich</span>
+      <strong>${escapeHtml(ticket.assignee)}</strong>
+    </div>
+    <label>
+      <span class="sr-only">Status von ${escapeHtml(ticket.title)}</span>
+      <select class="status-select" data-ticket-id="${ticket.id}">
+        ${Object.entries(statusLabels)
+          .map(([value, label]) => `<option value="${escapeHtml(value)}"${value === ticket.status ? " selected" : ""}>${escapeHtml(label)}</option>`)
+          .join("")}
+      </select>
+    </label>
+  `;
+  return article;
+}
 
       function renderBoard() {
         document.querySelectorAll(".column").forEach((column) => {
