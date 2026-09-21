@@ -1,0 +1,9 @@
+name: CI                          # Anzeigename im Actions-Tab
+on:                               # WANN der Workflow startet
+  push:                           # bei jedem Push in dieses Repo
+jobs:                             # WAS ausgefuehrt wird - ein Workflow hat 1..n Jobs
+  build:                          # frei gewaehlter Name des Jobs
+    runs-on: ubuntu-latest        # WO: ein frisch aufgesetzter Rechner bei GitHub
+    steps:                        # die Schritte des Jobs, von oben nach unten
+      - uses: actions/checkout@v7 # fertiger Baustein von anderen: holt deinen Code auf den Rechner
+      - run: echo "Hello CI"      # ein eigener Shell-Befehl
